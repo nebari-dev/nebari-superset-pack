@@ -11,7 +11,7 @@ metadata:
 spec:
   hostname: {{ .Values.nebariapp.hostname | quote }}
   service:
-    name: {{ .Values.nebariapp.service.name | default (printf "%s-superset" (include "nebari-superset.fullname" .)) }}
+    name: {{ .Values.nebariapp.service.name | default .Release.Name }}
     port: {{ .Values.nebariapp.service.port | default 8088 }}
   {{- if .Values.nebariapp.auth.enabled }}
   auth:

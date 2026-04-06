@@ -81,11 +81,17 @@ superset:
 
   extraSecretEnv: {}
 
+  # -- Override default Bitnami images (upstream defaults reference removed tags).
+  # Using bitnamilegacy mirrors which retain older image versions.
   postgresql:
     enabled: true
+    image:
+      repository: bitnamilegacy/postgresql
 
   redis:
     enabled: true
+    image:
+      repository: bitnamilegacy/redis
 
   bootstrapScript: |
     #!/bin/bash

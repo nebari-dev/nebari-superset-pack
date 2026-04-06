@@ -19,7 +19,7 @@ Nebari Integration: ENABLED
 Nebari Integration: DISABLED
 
   Access Superset via port-forward:
-    kubectl port-forward svc/{{ include "nebari-superset.fullname" . }}-superset {{ .Values.superset.service.port | default 8088 }}:{{ .Values.superset.service.port | default 8088 }}
+    kubectl port-forward svc/{{ .Release.Name }} {{ .Values.superset.service.port | default 8088 }}:{{ .Values.superset.service.port | default 8088 }}
 
   Then open: http://localhost:{{ .Values.superset.service.port | default 8088 }}
 

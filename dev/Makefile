@@ -34,24 +34,9 @@ cluster:
 	$(MAKE) _metallb-config
 
 _metallb-config:
-	$(eval METALLB_BASE_IP := $(shell docker network inspect kind -f '{{(index .IPAM.Config 0).Subnet}}' | cut -d. -f1,2))
-	@echo "==> Configuring MetalLB IP pool ($(METALLB_BASE_IP).255.200-$(METALLB_BASE_IP).255.250)..."
-	@cat <<-'EOF' | sed "s|METALLB_BASE_IP|$(METALLB_BASE_IP)|g" | kubectl apply -f -
-	apiVersion: metallb.io/v1beta1
-	kind: IPAddressPool
-	metadata:
-	  name: dev-pool
-	  namespace: metallb-system
-	spec:
-	  addresses:
-	    - METALLB_BASE_IP.255.200-METALLB_BASE_IP.255.250
-	---
-	apiVersion: metallb.io/v1beta1
-	kind: L2Advertisement
-	metadata:
-	  name: dev-l2
-	  namespace: metallb-system
-	EOF
+	@METALLB_BASE_IP=$$(docker network inspect kind -f '{{range .IPAM.Config}}{{.Subnet}} {{end}}' | tr ' ' '\n' | grep -F '.' | head -1 | cut -d. -f1,2); \
+	echo "==> Configuring MetalLB IP pool ($${METALLB_BASE_IP}.255.200-$${METALLB_BASE_IP}.255.250)..."; \
+	printf 'apiVersion: metallb.io/v1beta1\nkind: IPAddressPool\nmetadata:\n  name: dev-pool\n  namespace: metallb-system\nspec:\n  addresses:\n    - %s.255.200-%s.255.250\n---\napiVersion: metallb.io/v1beta1\nkind: L2Advertisement\nmetadata:\n  name: dev-l2\n  namespace: metallb-system\n' "$${METALLB_BASE_IP}" "$${METALLB_BASE_IP}" | kubectl apply -f -
 
 # Install Nebari stack (Envoy Gateway, cert-manager, Keycloak, nebari-operator)
 deps:
