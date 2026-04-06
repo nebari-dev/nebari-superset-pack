@@ -86,3 +86,8 @@ superset:
 
   redis:
     enabled: true
+
+  bootstrapScript: |
+    #!/bin/bash
+    uv pip install authlib ".[postgres]" && \
+    if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
