@@ -72,8 +72,25 @@ spec:
               AUTH_ROLE_ADMIN = 'Admin'
               AUTH_ROLE_PUBLIC = 'Public'
 
-          envFromSecrets:
-            - superset-oidc-client
+          # Reference the operator-created OIDC secret for OAuth credentials.
+          # Secret name follows the pattern: <release>-nebari-superset-oidc-client
+          extraEnvRaw:
+            - name: OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: superset-nebari-superset-oidc-client
+                  key: client-id
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: superset-nebari-superset-oidc-client
+                  key: client-secret
+            - name: OAUTH_SERVER_METADATA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: superset-nebari-superset-oidc-client
+                  key: issuer-url
+                  optional: true
 
           bootstrapScript: |
             #!/bin/bash

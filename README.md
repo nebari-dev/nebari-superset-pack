@@ -74,7 +74,7 @@ On Nebari clusters, the nebari-operator creates an OIDC client secret (`<release
 - `client-secret` - the client secret
 - `issuer-url` - the Keycloak issuer URL
 
-Reference this secret via `superset.extraEnv` to inject credentials into the OAuth config.
+Reference this secret via `superset.extraEnvRaw` to inject credentials into the OAuth config.
 
 ### Upstream Superset
 
