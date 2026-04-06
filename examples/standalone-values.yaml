@@ -1,0 +1,51 @@
+# examples/standalone-values.yaml
+# Example values for deploying nebari-superset on a non-Nebari Kubernetes cluster.
+#
+# This uses bundled PostgreSQL and Redis with local authentication.
+# No NebariApp CRD or Keycloak integration.
+#
+# Usage:
+#   helm upgrade --install superset nebari-superset/nebari-superset \
+#     -f standalone-values.yaml -n superset --create-namespace
+
+# -- NebariApp disabled for standalone deployments
+nebariapp:
+  enabled: false
+
+superset:
+  configOverrides:
+    proxy_fix: |
+      ENABLE_PROXY_FIX = True
+      PROXY_FIX_CONFIG = {
+          'x_for': 1,
+          'x_proto': 1,
+          'x_host': 1,
+          'x_port': 1,
+          'x_prefix': 1,
+      }
+      WTF_CSRF_ENABLED = True
+      WTF_CSRF_TIME_LIMIT = None
+      FEATURE_FLAGS = {
+          "DYNAMIC_PLUGINS": True,
+      }
+
+  # -- Generate a secret key: openssl rand -base64 42
+  extraSecretEnv:
+    SUPERSET_SECRET_KEY: CHANGE-ME-generate-with-openssl-rand-base64-42
+
+  # -- Bundled PostgreSQL for development/testing
+  postgresql:
+    enabled: true
+
+  # -- Bundled Redis
+  redis:
+    enabled: true
+
+  bootstrapScript: |
+    #!/bin/bash
+    uv pip install authlib ".[postgres]" && \
+    if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
+
+  service:
+    type: ClusterIP
+    port: 8088
