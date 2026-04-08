@@ -39,6 +39,10 @@ spec:
               - openid
               - profile
               - email
+            groups:
+              - superset-admin
+              - superset-user
+              - superset-public
           landingPage:
             enabled: true
             displayName: "Apache Superset"
