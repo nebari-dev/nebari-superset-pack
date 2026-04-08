@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  lint-and-test:
+    name: Lint Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint chart
+        run: helm lint chart/
+
+  publish-helm-chart:
+    name: Package and Publish Helm Chart
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Chart version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i "s/^version:.*/version: ${VERSION}/" chart/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${GITHUB_REF_NAME}\"/" chart/Chart.yaml
+          echo "Chart.yaml after version update:"
+          cat chart/Chart.yaml
+
+      - name: Build Helm dependencies
+        run: helm dependency build chart/
+
+      - name: Package Helm chart
+        run: |
+          mkdir -p dist
+          helm package chart/ --destination dist/
+
+      - name: Upload Helm chart to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sync-helm-repository:
+    name: Sync Chart to Helm Repository
+    runs-on: ubuntu-latest
+    needs: publish-helm-chart
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Chart version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i "s/^version:.*/version: ${VERSION}/" chart/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${GITHUB_REF_NAME}\"/" chart/Chart.yaml
+
+      - name: Sync chart to helm-repository
+        uses: nebari-dev/helm-repository/.github/actions/sync-chart@main
+        with:
+          chart-path: chart
+          chart-name: nebari-superset
+          token: ${{ secrets.NEBARI_HELM_REPO_TOKEN }}
