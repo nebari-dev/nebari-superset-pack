@@ -22,6 +22,12 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: Add Helm repositories
+        run: helm repo add superset https://apache.github.io/superset
+
+      - name: Build Helm dependencies
+        run: helm dependency build chart/
+
       - name: Lint chart
         run: helm lint chart/
 
@@ -43,6 +49,9 @@ jobs:
           sed -i "s/^appVersion:.*/appVersion: \"${GITHUB_REF_NAME}\"/" chart/Chart.yaml
           echo "Chart.yaml after version update:"
           cat chart/Chart.yaml
+
+      - name: Add Helm repositories
+        run: helm repo add superset https://apache.github.io/superset
 
       - name: Build Helm dependencies
         run: helm dependency build chart/
