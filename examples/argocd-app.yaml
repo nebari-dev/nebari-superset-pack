@@ -1,6 +1,12 @@
 # examples/argocd-app.yaml
 # Example ArgoCD Application for deploying nebari-superset on a Nebari cluster.
 # Customize the hostname, namespace, and targetRevision for your environment.
+#
+# Prerequisites:
+#   1. Create a Kubernetes secret for Superset's SECRET_KEY:
+#      kubectl create secret generic superset-secret-key -n superset \
+#        --from-literal=SUPERSET_SECRET_KEY="$(openssl rand -base64 42)"
+#   2. Create Keycloak groups for role mapping (superset-admin, superset-user).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,11 +15,10 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://nebari-dev.github.io/helm-repository
-    chart: nebari-superset
-    targetRevision: "0.2.0"
+    repoURL: https://github.com/nebari-dev/nebari-superset-pack
+    targetRevision: v0.3.0
+    path: chart
     helm:
-      valueFiles: []
       values: |
         nebariapp:
           enabled: true
@@ -26,8 +31,32 @@ spec:
                 pathType: PathPrefix
           auth:
             enabled: true
+            provider: keycloak
+            provisionClient: true
+            enforceAtGateway: false
+            redirectURI: "/oauth-authorized/keycloak"
+            scopes:
+              - openid
+              - profile
+              - email
+          landingPage:
+            enabled: true
+            displayName: "Apache Superset"
+            description: "Data exploration and visualization platform"
+            icon: "https://superset.apache.org/img/superset-logo-horiz.svg"
+            category: "Data Science"
+            priority: 10
+            healthCheck:
+              enabled: true
+              path: "/health"
+              intervalSeconds: 30
+              timeoutSeconds: 5
 
         superset:
+          # Reference an externally created secret containing SUPERSET_SECRET_KEY.
+          envFromSecrets:
+            - superset-secret-key
+
           configOverrides:
             oauth_config: |
               import os
@@ -106,9 +135,15 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: superset
+
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        nebari.dev/managed: "true"
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
