@@ -56,11 +56,15 @@ When `nebariapp.enabled: true`, the chart creates a NebariApp custom resource th
 |-------|-------------|---------|
 | `nebariapp.enabled` | Create NebariApp resource | `false` |
 | `nebariapp.hostname` | FQDN for the application | `""` (required when enabled) |
+| `nebariapp.routing.tls.enabled` | Provision TLS certificate and HTTPS listener | `true` (when routing is set) |
+| `nebariapp.routing.routes` | Path-based routing rules | `[]` |
 | `nebariapp.auth.enabled` | Enable gateway auth | `false` |
 | `nebariapp.auth.provisionClient` | Auto-provision Keycloak client | `true` |
 | `nebariapp.auth.scopes` | OAuth scopes | `[openid, profile, email]` |
 | `nebariapp.auth.groups` | Restrict to groups | `[]` |
 | `nebariapp.gateway` | Gateway type | `public` |
+
+**Important:** The `routing` section must be included for the operator to create HTTPRoutes and TLS certificates. Without it, no route or certificate will be provisioned.
 
 ### OAuth / Keycloak
 
