@@ -18,6 +18,12 @@ spec:
         nebariapp:
           enabled: true
           hostname: superset.nebari.example.com
+          routing:
+            tls:
+              enabled: true
+            routes:
+              - pathPrefix: /
+                pathType: PathPrefix
           auth:
             enabled: true
 

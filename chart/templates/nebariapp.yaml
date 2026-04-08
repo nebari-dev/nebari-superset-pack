@@ -13,6 +13,10 @@ spec:
   service:
     name: {{ .Values.nebariapp.service.name | default .Release.Name }}
     port: {{ .Values.nebariapp.service.port | default 8088 }}
+  {{- with .Values.nebariapp.routing }}
+  routing:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- if .Values.nebariapp.auth.enabled }}
   auth:
     enabled: true

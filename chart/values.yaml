@@ -19,6 +19,14 @@ nebariapp:
     name: ""
     # -- Service port
     port: 8088
+  # -- Routing configuration for HTTPRoute and TLS provisioning.
+  # When omitted, the operator will not create HTTPRoutes or TLS certs.
+  # routing:
+  #   tls:
+  #     enabled: true
+  #   routes:
+  #     - pathPrefix: /
+  #       pathType: PathPrefix
   auth:
     # -- Enable gateway-level authentication enforcement
     enabled: false
