@@ -2,11 +2,9 @@
 # Example ArgoCD Application for deploying nebari-superset on a Nebari cluster.
 # Customize the hostname, namespace, and targetRevision for your environment.
 #
-# Prerequisites:
-#   1. Create a Kubernetes secret for Superset's SECRET_KEY:
-#      kubectl create secret generic superset-secret-key -n superset \
-#        --from-literal=SUPERSET_SECRET_KEY="$(openssl rand -base64 42)"
-#   2. Create Keycloak groups for role mapping (superset-admin, superset-user).
+# The chart auto-generates a SUPERSET_SECRET_KEY on first install.
+# Keycloak groups (superset-admin, superset-user, superset-public) are
+# auto-created by the nebari-operator when listed in spec.auth.groups.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -57,10 +55,6 @@ spec:
               timeoutSeconds: 5
 
         superset:
-          # Reference an externally created secret containing SUPERSET_SECRET_KEY.
-          envFromSecrets:
-            - superset-secret-key
-
           configOverrides:
             oauth_config: |
               import os
